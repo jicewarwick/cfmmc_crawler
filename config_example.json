@@ -1,0 +1,9 @@
+{
+  "tushare_token": "********************************************************",
+  "account_name": "account_name",
+  "account_no": "account_no",
+  "password": "password",
+  "start_date": "20190603",
+  "end_date": "20190605",
+  "output_dir": "./"
+}

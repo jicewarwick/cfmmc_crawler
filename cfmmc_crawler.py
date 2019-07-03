@@ -23,7 +23,7 @@ class CFMMCCrawler(object):
     query_type_dict = {'逐日盯市': 'day', '逐笔对冲': 'trade'}
 
     def __init__(self, account_name: str, account_no: str, password: str, output_dir: str, tushare_token: str):
-        self.account_name, self.account_no, self.password = account_no, password, account_name
+        self.account_name, self.account_no, self.password = account_name, account_no, password
 
         self.output_dir = output_dir
         self.tushare_token = tushare_token

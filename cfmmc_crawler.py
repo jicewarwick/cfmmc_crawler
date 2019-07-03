@@ -9,28 +9,28 @@ from requests import session
 
 
 class CFMMCCrawler(object):
+    # modular constants, mostly web addresses
+    base_url = "https://investorservice.cfmmc.com"
+    login_url = base_url + '/login.do'
+    logout_url = base_url + '/logout.do'
+    data_url = base_url + '/customer/setParameter.do'
+    excel_daily_download_url = base_url + '/customer/setupViewCustomerDetailFromCompanyWithExcel.do'
+    excel_monthly_download_url = base_url + '/customer/setupViewCustomerMonthDetailFromCompanyWithExcel.do'
+    header = {
+        'Connection': 'keep-alive',
+        'User-Agent': "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
+    }
+    query_type_dict = {'逐日盯市': 'day', '逐笔对冲': 'trade'}
+
     def __init__(self, account_name: str, account_no: str, password: str, output_dir: str, tushare_token: str):
-        self.account_name = account_name
-        self.account_no = account_no
-        self.password = password
+        self.account_name, self.account_no, self.password = account_no, password, account_name
+
         self.output_dir = output_dir
-        self.query_type_dict = {'逐日盯市': 'day', '逐笔对冲': 'trade'}
         self.tushare_token = tushare_token
 
-        self.base_url = "https://investorservice.cfmmc.com"
-        self.login_url = self.base_url + '/login.do'
-        self.logout_url = self.base_url + '/logout.do'
-        self.data_url = self.base_url + '/customer/setParameter.do'
-        self.excel_daily_download_url = self.base_url + '/customer/setupViewCustomerDetailFromCompanyWithExcel.do'
-        self.excel_monthly_download_url = self.base_url + '/customer/setupViewCustomerMonthDetailFromCompanyWithExcel.do'
-        self.header = {
-            'Connection': 'keep-alive',
-            'User-Agent': "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        }
         self.ss = session()
-        self.token = None
-
         self.is_logged_in = False
+        self.token = None
 
     def login(self) -> None:
         """

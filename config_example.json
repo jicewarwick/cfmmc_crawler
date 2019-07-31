@@ -1,9 +1,20 @@
 {
-  "tushare_token": "********************************************************",
-  "account_name": "account_name",
-  "account_no": "account_no",
-  "password": "password",
+  "tushare_token": "******",
   "start_date": "20190603",
-  "end_date": "20190605",
-  "output_dir": "./"
+  "end_date": "20190611",
+  "output_dir": "./data",
+  "accounts": [
+    {
+      "fund_name": "***",
+      "broker": "**",
+      "account_no": "******",
+      "password": "******"
+    },
+    {
+      "fund_name": "***",
+      "broker": "**",
+      "account_no": "******",
+      "password": "******"
+    }
+  ]
 }

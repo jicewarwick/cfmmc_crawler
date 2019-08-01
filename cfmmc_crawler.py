@@ -9,6 +9,14 @@ from bs4 import BeautifulSoup
 from requests import session
 
 
+class UserNamePasswordError(ValueError):
+    pass
+
+
+class VerificationCodeError(ValueError):
+    pass
+
+
 class CFMMCCrawler(object):
     # modular constants, mostly web addresses
     base_url = "https://investorservice.cfmmc.com"
@@ -58,9 +66,9 @@ class CFMMCCrawler(object):
         verification_code_url = self.base_url + bs.body.form.img['src']
         tmp_file = BytesIO()
         tmp_file.write(self._ss.get(verification_code_url).content)
-        img = Image.open(tmp_file)
-        img.show()
-        verification_code = input('请输入验证码: ')
+        with Image.open(tmp_file) as img:
+            img.show()
+            verification_code = input('请输入验证码: ')
 
         post_data = {
             "org.apache.struts.taglib.html.TOKEN": token,
@@ -72,10 +80,12 @@ class CFMMCCrawler(object):
         data_page = self._ss.post(self.login_url, data=post_data, headers=self.header, timeout=5)
 
         if "验证码错误" in data_page.text:
-            print('登录失败, 验证码错误, 请重试!')
-        else:
-            print('登录成功...')
-            self.token = self._get_token(data_page.text)
+            raise VerificationCodeError()
+        if '请勿在公用电脑上记录您的查询密码' in data_page.text:
+            raise UserNamePasswordError()
+
+        print('登录成功...')
+        self.token = self._get_token(data_page.text)
 
     def logout(self) -> None:
         """
@@ -218,13 +228,19 @@ if __name__ == '__main__':
     for account in config['accounts']:
         crawler = CFMMCCrawler(account['fund_name'], account['broker'], account['account_no'], account['password'],
                                config['output_dir'], config['tushare_token'])
-        try:
-            print('正在登陆 ', account['fund_name'], ' - ', account['broker'])
-            while crawler.token is None:
+        print('正在登陆 ', account['fund_name'], ' - ', account['broker'])
+        while crawler.token is None:
+            try:
                 crawler.login()
-        except KeyboardInterrupt:
-            continue
-        crawler.batch_daily_download(config['start_date'], config['end_date'])
-        crawler.batch_monthly_download(config['start_date'], config['end_date'])
-        print('完成操作, 登出!')
-        crawler.logout()
+            except UserNamePasswordError:
+                print('用户名密码错误!')
+                break
+            except VerificationCodeError:
+                print('登录失败, 验证码错误, 请重试!')
+                continue
+
+        if crawler.token:
+            crawler.batch_daily_download(config['start_date'], config['end_date'])
+            crawler.batch_monthly_download(config['start_date'], config['end_date'])
+            print('完成操作, 登出!')
+            crawler.logout()

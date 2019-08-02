@@ -70,6 +70,9 @@ class CFMMCCrawler(object):
             img.show()
             verification_code = input('请输入验证码: ')
 
+        if not verification_code:
+            raise VerificationCodeError('验证码为空')
+
         post_data = {
             "org.apache.struts.taglib.html.TOKEN": token,
             "showSaveCookies": '',
@@ -80,9 +83,9 @@ class CFMMCCrawler(object):
         data_page = self._ss.post(self.login_url, data=post_data, headers=self.header, timeout=5)
 
         if "验证码错误" in data_page.text:
-            raise VerificationCodeError()
+            raise VerificationCodeError('登录失败, 验证码错误, 请重试!')
         if '请勿在公用电脑上记录您的查询密码' in data_page.text:
-            raise UserNamePasswordError()
+            raise UserNamePasswordError('用户名密码错误!')
 
         print('登录成功...')
         self.token = self._get_token(data_page.text)
@@ -232,12 +235,11 @@ if __name__ == '__main__':
         while crawler.token is None:
             try:
                 crawler.login()
-            except UserNamePasswordError:
-                print('用户名密码错误!')
+            except UserNamePasswordError as e:
+                print(e)
                 break
-            except VerificationCodeError:
-                print('登录失败, 验证码错误, 请重试!')
-                continue
+            except VerificationCodeError as e:
+                print(e)
 
         if crawler.token:
             crawler.batch_daily_download(config['start_date'], config['end_date'])
